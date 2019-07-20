@@ -9,7 +9,7 @@ namespace VisioPowerShell.Commands.VisioShape
         [SMA.Parameter(ParameterSetName="name", Position = 0, Mandatory = false)]
         public string[] Name;
 
-        [SMA.Parameter(ParameterSetName = "id", Position = 0, Mandatory = false)]
+        [SMA.Parameter(ParameterSetName = "id", Position = 0, Mandatory = true)]
         public int[] Id;
         
         [SMA.Parameter(Mandatory = false)]
@@ -53,7 +53,33 @@ namespace VisioPowerShell.Commands.VisioShape
             if (this.Name != null)
             {
                 string str_asterisk = "*";
-                if (this.Name.Contains(str_asterisk))
+                string str_doubleasterisk = "**";
+                // trying a total hack to get objects selected
+                if(this.Name.Contains(str_doubleasterisk)) 
+                {
+                                   // return selected shapes
+                    if (this.Recursive)
+                    {
+                        this.WriteVerbose("Returning selected shapes (nested)");
+                        var shapes = this.Client.Selection.GetShapesInSelectionRecursive();
+                        this.WriteObject(shapes, true);
+                    }
+                    if (this.SubSelected)
+                    {
+                        this.WriteVerbose("Returning selected shapes (subselect)");
+                        var shapes = this.Client.Selection.GetSubSelectedShapes();
+                        this.WriteObject(shapes, true);
+                    }
+                    else
+                    {
+                        this.WriteVerbose("Returning selected shapes ");
+                        var shapes = this.Client.Selection.GetShapesInSelection();
+                        this.WriteObject(shapes, true);
+                    }
+
+                    return;
+                }
+                else if (this.Name.Contains(str_asterisk))
                 {
                     var shapes = this.Client.Draw.GetAllShapesOnActiveDrawingSurface();
                     this.WriteObject(shapes, true);
